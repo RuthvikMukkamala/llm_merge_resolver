@@ -69,12 +69,15 @@ class EnhancedStrategyClassifier:
 
         return 'NEEDS_LLM', 0
 
-        features = self._extract_features(conflict)
-        prediction = self.model.predict([features])[0]
-        strategy = self.label_encoder.inverse_transform([prediction])[0]
+        # TODO: Update with new ML based model to help classify the appropriate file to choose
 
-        probs = self.model.predict_proba([features])[0]
-        confidence = max(probs)
+        # features = self._extract_features(conflict)
+        #
+        # prediction = self.model.predict([features])[0]
+        # strategy = self.label_encoder.inverse_transform([prediction])[0]
+        #
+        # probs = self.model.predict_proba([features])[0]
+        # confidence = max(probs)
 
         # if confidence < 0.7:
         #     return 'NEEDS_LLM', confidence
