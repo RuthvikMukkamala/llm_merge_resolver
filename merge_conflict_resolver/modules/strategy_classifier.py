@@ -9,10 +9,9 @@ import joblib
 
 
 class EnhancedStrategyClassifier:
-    # Using a local model that I have to research more about, will upload the model to HuggingFace once
-    # I complete more robust testing
+    # ML Model to help with code classification
 
-    def __init__(self, model_path="merge_strategy_model.pkl"):
+    def __init__(self, model_path="....pkl"):
         self.vectorizer = TfidfVectorizer(max_features=1000)
         self.label_encoder = LabelEncoder()
         self.strategies = ['TAKE_A', 'TAKE_B', 'MERGE_BOTH', 'SMART_MERGE', 'NEEDS_LLM']

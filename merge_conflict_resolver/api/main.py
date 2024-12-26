@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Body, HTTPException
 from fastapi.responses import JSONResponse
 from modules.conflict_handler import ConflictHandler
 import logging
@@ -12,7 +12,7 @@ conflict_handler = ConflictHandler()
 
 
 @app.post("/merge_resolver")
-async def resolve_conflicts(file: UploadFile = File(...)):
+async def resolve_conflicts(file: UploadFile = File(None), content: str = Body(None)):
     """
     Resolves merge conflicts in the uploaded file.
     """
@@ -35,16 +35,20 @@ async def resolve_conflicts(file: UploadFile = File(...)):
         # Resolve each conflict
         for conflict in conflicts:
             try:
-                resolution = conflict_handler.resolve_conflict(file.filename, conflict)
-                logging.info(f"Conflict resolved.")
+                resolution = conflict_handler.resolve_conflict(conflict, resolved_content)
+                if not resolution:
+                    raise ValueError("No valid resolution returned for the conflict.")
+                logging.info(f"Conflict resolved successfully for branch {conflict.get('branch', 'unknown')}.")
             except Exception as e:
-                logging.error(f"Error resolving conflict: {conflict}. Error: {e}")
+                logging.error(f"Error resolving conflict: {repr(conflict)}. Error: {e}")
                 unresolved_conflicts.append({"conflict": conflict, "error": str(e)})
                 continue
 
             # Replace the conflict block with the resolution
-            conflict_pattern = f"<<<<<<< HEAD\n{conflict['a']}\n=======\n{conflict['b']}\n>>>>>>> {conflict['branch']}"
-            resolved_content = resolved_content.replace(conflict_pattern, resolution)
+            conflict_pattern = (
+                f"<<<<<<< HEAD\n{conflict['a']}\n=======\n{conflict['b']}\n>>>>>>> {conflict['branch']}"
+            )
+            resolved_content = resolved_content.replace(conflict_pattern, resolution or "")
 
         response = {
             "resolved_content": resolved_content,
