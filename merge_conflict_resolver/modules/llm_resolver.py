@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 load_dotenv()
 
+
 class ConflictData(TypedDict):
     a: str
     b: str
@@ -33,15 +34,6 @@ class LLMResponse:
 
 class LLMMergeResolver:
     def __init__(self, model: str = "gpt-4"):
-        """
-        Initializes the LLM Merge Resolver.
-
-        Args:
-            model: The OpenAI model to use for merge resolution.
-
-        Raises:
-            EnvironmentError: If OPENAI_API_KEY is not set.
-        """
         self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise EnvironmentError("OPENAI_API_KEY is not set in the .env file or environment.")
@@ -50,16 +42,6 @@ class LLMMergeResolver:
         self.model = model
 
     def _build_prompt(self, conflict: ConflictData, imports: List[str]) -> str:
-        """
-        Builds the prompt for the LLM.
-
-        Args:
-            conflict: Dictionary containing conflict information.
-            imports: List of import statements from the file.
-
-        Returns:
-            str: Formatted prompt for the LLM.
-        """
         return f"""You are an expert programmer resolving a Git merge conflict. Your task is to merge the 
         conflicting versions while maintaining code quality and functionality.
 
@@ -98,18 +80,6 @@ class LLMMergeResolver:
         """
 
     def _parse_llm_response(self, content: str) -> LLMResponse:
-        """
-        Parses the LLM response into structured data.
-
-        Args:
-            content: Raw response content from the LLM.
-
-        Returns:
-            LLMResponse: Structured response data.
-
-        Raises:
-            ValueError: If the response format is invalid.
-        """
         merged_code = re.search(r"MERGED_CODE:\n```(?:\w+\n)?(.*?)```", content, re.DOTALL)
         explanation = re.search(r"EXPLANATION:\n(.*?)\n\nRISKS:", content, re.DOTALL)
         risks = re.search(r"RISKS:\n(.*?)$", content, re.DOTALL)
@@ -124,16 +94,6 @@ class LLMMergeResolver:
         )
 
     async def resolve_async(self, conflict: ConflictData, file_content: str) -> ResolutionResult:
-        """
-        Asynchronously resolves a Git merge conflict using an LLM.
-
-        Args:
-            conflict: Dictionary containing the conflict information.
-            file_content: Content of the file containing the conflict.
-
-        Returns:
-            ResolutionResult: Dictionary containing the merged code, explanation, and risks.
-        """
         try:
             imports = analyze_imports(file_content)
             prompt = self._build_prompt(conflict, imports)
@@ -166,16 +126,6 @@ class LLMMergeResolver:
             }
 
     def resolve(self, conflict: ConflictData, file_content: str) -> ResolutionResult:
-        """
-        Synchronously resolves a Git merge conflict using an LLM.
-
-        Args:
-            conflict: Dictionary containing the conflict information.
-            file_content: Content of the file containing the conflict.
-
-        Returns:
-            ResolutionResult: Dictionary containing the merged code, explanation, and risks.
-        """
         try:
             imports = analyze_imports(file_content)
             prompt = self._build_prompt(conflict, imports)
@@ -209,14 +159,5 @@ class LLMMergeResolver:
 
 
 def analyze_imports(content: str) -> List[str]:
-    """
-    Extracts import statements from the file content.
-
-    Args:
-        content: File content to analyze.
-
-    Returns:
-        List[str]: List of import statements found in the content.
-    """
     import_pattern = r'^(?:from\s+\S+\s+)?import\s+\S+'
     return re.findall(import_pattern, content, re.MULTILINE)
